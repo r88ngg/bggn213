@@ -1,0 +1,254 @@
+---
+title: "Class 14: Pathway Analysis from RNA-Seq Results"
+author: "Renny Ng (A98061553)"
+format: pdf
+---
+## Data Import
+Reading in the data from .csv files.
+
+
+```{r}
+metaFile <- "GSE37704_metadata.csv"
+countFile <- "GSE37704_featurecounts.csv"
+```
+
+```{r}
+colData = read.csv(metaFile, row.names=1)
+head(colData)
+```
+```{r}
+countData = read.csv(countFile, row.names=1)
+```
+
+## Data Exploration 
+
+Remove the first column from countData
+```{r}
+countData <- as.matrix(countData[,-1])
+head(countData)
+```
+
+
+>Q. How do we remove all the zero-sum rows? 
+
+```{r}
+non.zero.inds <- rowSums(countData) > 0
+non.zero.counts <- countData[non.zero.inds, ]
+nrow((non.zero.counts))
+```
+15,975 non-zero genes remain. 
+```{r}
+head(non.zero.counts)
+```
+
+
+## Setup for DESeq 
+```{r}
+#| message: false
+library(DESeq2)
+```
+
+
+## DESeq Analysis
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = non.zero.counts, 
+                              colData = colData, 
+                              design = ~condition)
+```
+```{r}
+dds <- DESeq(dds)
+res <- results(dds)
+```
+
+```{r}
+head(res)
+```
+
+## Result extraction and visualization
+
+Using base R
+```{r}
+plot(res$log2FoldChange, -log(res$padj))
+```
+```{r}
+mycols <- rep("gray", nrow(res))
+mycols[abs(res$log2FoldChange)>2] <- "blue"
+mycols[res$padj > 0.05] <- "gray"
+plot(res$log2FoldChange, -log(res$padj), col=mycols, ylab = "-log(P-value)", xlab = "log2(Fold Change)")
+abline(v=-2, col="red", lty=2)
+abline(v=2, col="red", lty=2)
+abline(h=-log(0.05), col="red", lty=2)
+```
+Using ggplot 
+```{r}
+library(ggplot2)
+```
+```{r}
+df <- as.data.frame(res)
+```
+```{r}
+ggplot(df) + 
+  aes (log2FoldChange, -log(padj)) +
+  geom_point()
+```
+```{r}
+ggplot(df) + 
+  aes (log2FoldChange, -log(padj)) +
+  geom_point(col=mycols)
+```
+
+```{r}
+summary(res)
+```
+
+## Pathway analysis
+We have a list of genes/proteins of interest, and we have the quantitative data for each gene/protein (fold change, p-value, spectral counts, presence/absence). In order to prepare a proper pathway, we need to translate one set of IDs into another. 
+
+Load up some packages we will need.
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+```
+What are the databases we can translate to? 
+```{r}
+columns(org.Hs.eg.db)
+```
+
+
+### Annotate the genes with symbol and Entrez IDs 
+
+We can now use these "columns" with the `mapIds()` function to translate between database identifiers. 
+```{r}
+res$symbol <- mapIds(org.Hs.eg.db,
+                     keys=row.names(res),
+                     keytype="ENSEMBL",
+                     column="SYMBOL")
+```
+```{r}
+res$entrez <- mapIds(org.Hs.eg.db,
+                     keys=row.names(res),
+                     keytype="ENSEMBL",
+                     column="ENTREZID")
+```
+```{r}
+res$genename <- mapIds(org.Hs.eg.db,
+                     keys=row.names(res),
+                     keytype="ENSEMBL",
+                     column="GENENAME")
+```
+```{r}
+res
+```
+
+
+### KEGG and GO Analysis
+Install and load some packages: "pathview", "gage", and "gageData"
+
+```{r}
+#|message: false
+library(pathview)
+library(gage)
+library(gageData)
+
+```
+
+gage function wants as its input: a vector of fold changes with names of the genes in a format that matches either database/geneset we are going to use. 
+
+```{r}
+foldchanges <- res$log2FoldChange
+names(foldchanges) <- res$entrez
+head(foldchanges)
+```
+At this point, we can remove things we don't want with the `rm()` function. 
+
+```{r}
+data("kegg.sets.hs")
+data("sigmet.idx.hs")
+```
+
+Focus on signaling and metabolic pathways only
+
+```{r}
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+
+```
+```{r}
+foldchanges = res$log2FoldChange
+names(foldchanges) = res$entrez
+head(foldchanges)
+```
+```{r}
+keggres = gage(foldchanges, gsets=kegg.sets.hs)
+
+```
+```{r}
+head(keggres$less)
+
+```
+
+```{r}
+
+pathview(gene.data=foldchanges, pathway.id="hsa04110")
+
+```
+
+![Cell cycle pathway from KEGG](hsa04110.pathview.png)
+
+## Gene Ontology (GO)
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+```
+```{r}
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+
+```
+```{r}
+head(gobpres$less)
+```
+This gives us a list of GO terms (in contrast to the figures produced by KEGG)
+
+## Reactome
+
+Reactome is meant to give both the written lists and also the visuals. 
+
+Here we want to implement some criteria: 
+
+- ABS (Log2FC) > +2
+- PADJ < 0.05
+
+```{r}
+inds <- (abs(res$log2FoldChange) > 2) & (res$padj < 0.05)
+mygenes <- res$symbol[inds]
+```
+
+```{r}
+cat(head(mygenes), sep = "\n")
+```
+
+```{r}
+write.table(mygenes, 
+            file="mygenes.txt", 
+            quote = FALSE, 
+            row.names = FALSE, 
+            col.names = FALSE)
+```
+![Cell cycle pathway from KEGG](PathwaysOverview.png)
+
+![Example Figure from GO](R-HSA-1640170.png)
+
+
+## Save our results 
+
+```{r}
+write.csv(res,file="myresults.csv")
+```
+
+
+
+
+
