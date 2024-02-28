@@ -1,0 +1,236 @@
+---
+title: "Class 6: R Functions"
+author: "Renny Ng (PID: A98061553)"
+date: 01/26/24
+format: pdf
+editor: visual
+---
+#Our first simple silly function
+
+**All functions in R have 3 parts. They have:**
+
+- A name
+- Input arguments (none, one, or more)
+- Body
+
+A function to add two numbers
+
+```{r sillyfun}
+sillyadd <- function(x,y=1){
+  x+y
+}
+```
+
+Let's try out this function (after executing the code chunk and seeing it under "Functions" in Environment)
+
+```{r}
+sillyadd(10)
+```
+```{r}
+sillyadd(100,100)
+```
+```{r}
+sillyadd(100,)
+```
+To get the code from any function: just type out the function without parentheses.
+
+#Let's do something more useful.
+
+Write a function grade() to determine an overall grade from a vector of student homework assignment scores, dropping the lowest single assignment score.
+
+Loaded in input vectors from the Class 6 R Functions Lab
+```{r}
+# Example input vectors to start with
+student1 <- c(100, 100, 100, 100, 100, 100, 100, 90)
+student2 <- c(100, NA, 90, 90, 90, 90, 97, 80)
+student3 <- c(90, NA, NA, NA, NA, NA, NA, NA)
+```
+
+Strategy:
+
+1. Sort Student score, so that first value is the lowest value.
+2. Set NA to 0
+3. Take the mean from the 2nd to 8th scores.
+
+
+Trying out the function writing now:
+```{r}
+sort(student1)
+```
+I will begin by getting a skateboard solutio nto my tesla problem.
+```{r}
+mean(student1)
+```
+```{r}
+min(student1)
+```
+```{r}
+student1
+which.min(student1)
+```
+
+```{r}
+student1[-8]
+```
+mean(student1-which.min(student1))
+```{r}
+mean(student1-which.min(student1))
+#still not correct
+```
+```{r}
+student1[-8]
+```
+
+```{r}
+student1_minus_lowest <- student1[-8]
+```
+
+```{r}
+mean(student1_minus_lowest)
+```
+```{r}
+x <- student1
+#Find lowest value 
+ind <- which.min(x)
+#Exclude lowest value and find mean
+mean(x[-ind])
+```
+```{r}
+x <- student2
+#Find lowest value 
+ind <- which.min(x)
+ind
+#Exclude lowest value and find mean
+mean(x[-ind],na.rm=T)
+```
+```{r}
+x <- student3
+#Find lowest value 
+x
+ind <- which.min(x)
+ind
+#Exclude lowest value and find mean
+mean(x[-ind],na.rm=T)
+```
+Find and replace NA value with 0
+is.na function designates value NA with any different value.
+== asks for whether something is true
+
+```{r}
+x <- 1:5
+x
+x[x==3] <-10000
+x
+```
+```{r}
+x <- student3
+x
+x[is.na(x)] <- 0
+x
+```
+```{r}
+x
+x[is.na(x)] <- 0
+mean(x[-which.min(x)])
+```
+fname <- function(arg1, arg2) {paste(arg1, arg2)}
+```{r}
+grade <- function(x) {
+  x[is.na(x)] <- 0
+mean(x[-which.min(x)])}
+```
+```{r}
+grade(student1)
+grade(student2)
+grade(student3)
+```
+#Question 1: 
+Read a class gradebook CSV file from here: "https://tinyurl.com/gradeinput"
+```{r}
+url <- "https://tinyurl.com/gradeinput"
+gradebook <- read.csv(url, row.names=1)
+```
+Reassigning names to rows argument: row.names=#
+
+Now use our `grade()`function to grade the whole class.
+But currently it will not work, because our format is different, because we are working with data frame (not a one-dimensional vector). 
+
+We need can loop the function: for each student, loop and save. However, there is something easier: the `apply` function. 
+
+- apply(X, MARGIN, FUN, ..., simplify = TRUE)
+- In our case: X = gradebook, FUN = grade()
+- What is MARGIN? 
+
+MARGIN dictates whether the function is applied to rows or columns.
+
+- Rows = 1
+- Columns = 2
+
+We can "apply" our new `grades()` function over rows or columns of the gradebook. 
+
+```{r}
+results <- apply(gradebook, 1, grade)
+results
+```
+#Question 2: Using your grade() function and the supplied gradebook, Who is the top scoring student overall in the gradebook?
+```{r}
+sorted_results <- sort(results)
+sorted_results
+```
+Student-18 appears to be the highest-scoring. 
+```{r}
+which_max <- which.max(results)
+which_max
+```
+Using `which.max` confirms that student-18 is doing the best. 
+#Question 3: From your analysis of the gradebook, which homework was toughest on students (i.e. obtained the lowest scores overall?
+```{r}
+averaged_assignments <- apply(gradebook, 2, mean)
+averaged_assignments
+```
+lowest_score <- function(x) {
+  x[is.na(x)] <- 0}
+```{r}
+lowest_score <- function(x) {
+  x[is.na(x)] <- 0}
+```
+```{r}
+ apply(gradebook, 2, mean, na.rm=T)
+#na.rm removes NA before applying
+```
+It appears that homework 3 was the toughest assignment. 
+
+#Question 4: From your analysis of the gradebook, which homework was most predictive of overall score (i.e. highest correlation with average grade score)
+
+Consider the correlation between individual assignment scores with overall performance.
+
+Look at the individual columns in the gradebook, with the results of grades. We want to see higher correlation scores for each assignment. 
+
+Use Pearson correlation (0 means no correlation, 1 is perfect correlation). Using the `cor` function.
+
+```{r}
+gradebook$hw5
+results
+#Are the trends correlated? 
+cor(x=gradebook$hw5, y=results)
+#This yields an error, because there are still missing homeworks (NA values). 
+#We need to mask NA values to 0.
+```
+```{r}
+mask <- gradebook
+mask[is.na(mask)] <- 0
+mask
+```
+```{r}
+cor(mask$hw5, results)
+```
+```{r}
+cor(mask$hw5, results)
+cor(mask$hw3, results)
+
+```
+```{r}
+apply(mask, 2, cor, y=results)
+```
+It appears that homework 2 is the least predictive of overall student success. 
+

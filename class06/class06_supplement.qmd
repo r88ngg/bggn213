@@ -1,0 +1,47 @@
+---
+title: "class06_supplement"
+format: pdf
+editor: visual
+---
+
+```{r}
+library(bio3d)
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+The inputs are various accession values of proteins from PDB. 
+
+It appears that this function reads values from pdb, trims certain values from the dataset, compares two categories, and finally provides plots as the output. 
+
+The output are plots of bfactor of the given proteins with their residue number. 
+
+
+I will now attempt to rewrite this code, correcting for an error in one of the lines with a copy+paste error. 
+
+s1 <- read.pdb("4AKE") 
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s1.b <- s1.chainA$atom$b
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+#input = "4AKE"
+
+Simplified code: 
+
+pdbcode <- {("4AKE")
+pdb < - read.pdb (pdbcode) 
+chain <- trim.pdb()
+s1.b <- s1.chainA$atom$b
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")}
+#input = "4AKE"
+
+
+
