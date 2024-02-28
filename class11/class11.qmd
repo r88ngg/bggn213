@@ -1,0 +1,68 @@
+---
+title: "Class 11: AlphaFold"
+author: "Renny Ng (A98061553)"
+format: pdf
+---
+
+AlphaFold is a cool new bioinformatics method for structure prediction from sequence. 
+
+We can run AlphaFold on our own computers without installing it or we can run on GoogleColab (without need to install anything) via: https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb
+
+Here's a function to list files:
+```{r}
+pth <- "hivdimer_23119/"
+
+list.files(path=pth)
+```
+
+The multiple sequence alignment (MSA) is contained in the "a3m" file of our AlphaFold output. 
+
+Here we only want to open the a3m file, and we want the full path as well (the location in its current directory). Add additional arguments for "pattern" and for "full.names". 
+```{r}
+aln.file <- list.files(path=pth, pattern = ".a3m", full.names=TRUE)
+```
+
+```{r}
+library(bio3d)
+aln <- read.fasta(aln.file, to.upper=TRUE)
+```
+```{r}
+attributes(aln)
+```
+This is a large alignment (almost too big to really look at). 
+```{r}
+dim(aln$ali)
+```
+There are 5,378 sequences, and 132 positions. 
+
+Let's calculate summary summary info such as conservation scores (if you go down these 132 columns, shows which are the most conserved position).
+```{r}
+sim <- conserv(aln)
+```
+
+```{r}
+plot(sim, typ="h")
+```
+We can summarize these conserved columns (those with high scores above) via a consensus sequence. This will reveal the most conserved amino acids which are likely essential for normal function. 
+
+```{r}
+consensus(aln, cutoff = 0.9)$seq
+```
+Now we can read in our structure model to see where the D" "T" "G" "A" motif is located. Read the predicted alignment error (PAE) files into R to make sense of these different multichain models. These are stored as JSON format. Reading these require the "jsonlite" package. 
+
+```{r}
+library(jsonlite)
+```
+Now we must find our JSON files. 
+```{r}
+list.files(path=pth, pattern = "000.json", full.names=TRUE)
+```
+
+
+pae1 <- read_json(pae.files[1], simplifyVector = TRUE)
+pae5 <- read_json(pae.files[5], simplifyVector = TRUE)
+
+
+
+
+
