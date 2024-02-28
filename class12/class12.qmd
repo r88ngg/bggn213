@@ -1,0 +1,16 @@
+---
+title: "Class 12"
+author: "Renny Ng (A98061553)"
+format: html
+---
+
+Reading in Sample Genotype MXL data for SNP rs8067378. 
+```{r}
+rs8067378 <- read.csv("SNP Sample.csv")
+attributes(rs8067378)
+```
+```{r}
+SNPgeno <- list(rs8067378$"Genotype..forward.strand.")
+table(SNPgeno)
+```
+

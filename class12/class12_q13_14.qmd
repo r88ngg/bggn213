@@ -1,0 +1,53 @@
+---
+title: "Class 12: Q13 and Q14"
+author: "Renny Ng (A98061553)"
+format: pdf
+---
+>Q13: Read this file into R and determine the sample size for each genotype and their
+corresponding median expression levels for each of these genotypes
+
+```{r}
+snp <- read.table("rs8067378_ENSG00000172057.6.txt")
+table(snp$geno)
+```
+There are 108 A/AA, 233 A/G, and 121 G/G genotypes.
+
+```{r}
+AA <- snp$geno=="A/A"
+AG <- snp$geno=="A/G"
+GG <- snp$geno=="G/G"
+```
+
+```{r}
+AAmedian <- median(snp$exp[snp$geno=="A/A"])
+AAmedian
+```
+```{r}
+AGmedian <- median(snp$exp[snp$geno=="A/G"])
+AGmedian
+```
+```{r}
+GGmedian <- median(snp$exp[snp$geno=="G/G"])
+GGmedian
+```
+
+The median expression levels for each genotype are as follows:
+A/A: 31.24847
+A/G: 25.06486
+G/G: 20.07363
+
+>Q14: Generate a boxplot with a box per genotype, what could you infer from the relative expression value between A/A and G/G displayed in this plot? Does the SNP effect the expression of ORMDL3?
+
+```{r}
+library(ggplot2)
+```
+```{r}
+ggplot(snp) + 
+  aes(geno,exp, col=geno) +
+  geom_boxplot() +
+  xlab ("Genotype") +
+  ylab ("Expression") +
+  theme_bw() +
+  guides(color=guide_legend("Genotypes"))
+```
+From this data, I infer that the relative expression of G/G is reduced compared to A/A. It appears that this SNP does indeed affect the expression of ORMDL3. 
