@@ -1,0 +1,307 @@
+---
+title: "Class 8: Mini Project"
+author: "Renny Ng (PID: A98061553)"
+format: pdf
+---
+
+The goal of this mini-project is for you to explore a complete analysis using the unsupervised learning techniques covered in class. You’ll extend what you’ve learned by combining PCA as a preprocessing step to clustering using data that consist of measurements of cell nuclei of human breast masses. This expands on our RNA-Seq analysis from last day.
+
+Our data for today comes from FNA of breast tissue. Let's read this data into R. 
+
+First, save the csv file itself into the same directory as the R project.
+Second, read the CSV using `read.csv`
+Third, set `row.names=1` 
+
+```{r}
+wisc.df <- read.csv("WisconsinCancer.csv", row.names=1)
+head(wisc.df)
+```
+```{r}
+dim(wisc.df)
+```
+>Q. How many observations/samples/rows are there? 
+
+```{r}
+nrow(wisc.df)
+```
+There are 569 rows.
+
+Can also check with `r nrow(wisc.df)` (shows the number directly in the rendered Quarto doc)
+
+>Q. What is in the $diagnosis column? How many of each type?
+
+```{r}
+sum(wisc.df$diagnosis == "M")
+sum(wisc.df$diagnosis == "B")
+```
+Or, use table. Table the function with the column, giving how many of each there are. 
+
+```{r}
+table(wisc.df$diagnosis)
+```
+There are 357 benign examples, and 212 malignant examples
+
+Generally if we do machine learning, we want examples to be balanced, so that its learning is not skewed. 
+
+>Q. How many variables/features in the data are suffixed with _mean?
+
+Can use `grep`. `grep(pattern,x)`
+
+Pattern = character string containing a regular expression (or character string for fixed = TRUE) to be matched in the given character vector.
+
+`length` gives the total sum of vectors. 
+
+```{r}
+length(grep("_mean", colnames(wisc.df), value=T))
+```
+There are 10 variables/features in the data suffixed with _mean. 
+
+>Q. How many variables/dimensions do we have?
+
+```{r}
+ncol(wisc.df)
+```
+
+Save the diagnosis variable for reference later. 
+```{r}
+diagnosis <- as.factor(wisc.df$diagnosis)
+diagnosis
+```
+Now we must remove the column before we do analysis on the numerical values in the other columns. 
+
+```{r}
+wisc.data <- wisc.df[,-1]
+ncol(wisc.data)
+```
+We can try hierarchical clustering first with `hclust()`. Let's try clustering this data. hclust requires "d", a distance matrix. 
+
+But the graph does not look promising at all (not printed).
+
+#Principal Component Analysis
+
+Let's try PCA on this data instead. Before doing any analysis like this we should check if our input data needs to be scaled first. 
+
+Side note:
+```{r}
+head(mtcars)
+```
+
+We cannot run PCA without scaling, because PCA will capture variance that is dominated by certain variables (in the case of cars, by horsepower). We need to treat the data fairly. 
+
+```{r}
+apply(mtcars, 2, mean)
+```
+
+```{r}
+apply(mtcars, 2, sd)
+#In this case, the variance in displacement (disp) is massive, and will dominate the PCA 
+```
+
+Let's try PCA on this car dataset. 
+
+```{r}
+pc <- prcomp(mtcars)
+summary(pc)
+biplot(pc)
+#Note that this captures plenty of variance, but it likely arises from difference in horsepower. 
+```
+
+```{r}
+pr.scale <-prcomp(mtcars, scale=T)
+summary(pr.scale)
+biplot(pr.scale)
+```
+Again, scaling is important so that the variance is not dominated by non-scaled data. So be sure to check the SD and means, and if they are drastically different, then remember to scale. 
+
+##Back to our cancer dataset. 
+
+We will need to scale this dataset, because the spread is very different  
+
+```{r}
+apply(wisc.data, 2, sd)
+apply(wisc.data, 2, mean)
+```
+```{r}
+wisc.pr <-prcomp(wisc.data, scale=T)
+summary(wisc.pr)
+biplot(wisc.pr)
+```
+>Q7. What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+Using mtcars dataset as an example, there is little clarity afforded by this graph. It is very difficult to understand and anothing stands out. 
+
+How well do the PCs capture the variance in the original data?
+```{r}
+summary(wisc.pr)
+```
+>Q4. From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+
+PC1 captures 44.27% of the variance. 
+
+
+>Q5. How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+
+3 PCs are required to describe at least 70% of the variance. 
+
+>Q6. How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+7 PCs are required to describe at least 90% of the variance. 
+
+Cumulatively, PC1 and PC2 capture 63.24% of the variance. 
+
+Our main PC score plot (AKA PC plot, PC1 vs PC2, ordination plot).
+
+```{r}
+attributes(wisc.pr)
+```
+```{r}
+#`wisc.pr$x` prints out the PC values for all patients. 
+#We want to plot PC1 vs PC2 for all patients. 
+```
+
+We need to build our own plot here:
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col=diagnosis)
+```
+>Q8. Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+PCA reveals a striking difference between the malignant and benign points.
+
+The points lying next to one another should have similar cell characteristics. 
+
+Now let's try to make a nice ggplot figure. 
+
+```{r}
+pc <- as.data.frame(wisc.pr$x)
+```
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+ggplot(pc) +
+aes(PC1, PC2, col=diagnosis) +
+geom_point() +
+xlab ("PC1 (44.27% of variance)") +
+ylab ("PC2 (18.97% of variance)") +
+theme_bw()
+```
+Each point represents a sample and its measured cell characteristics in the dataset. The general idea is that cells with similar characteristics should cluster. 
+
+What's actually going on in this analysis? 
+
+Recall that PCA is a method for compressing data into something that captures the essence of the original data. 
+
+- Takes a dataset with lots of dimensions and flattens it to 2-3 dimensions so we can look at it 
+- Takes lines of best fit (first best line = PC1, second best line = PC2) to create the new axes; rotates the axis and dispenses with the original axes.
+
+The length and direction of PC1 is mostly dictated by the endpoint points. 
+
+We can therefore score points based on how much they influence PC1. 
+
+- With the centerpoint of the PC1 line being 0, can arbitrarily set numerical values to reflect the influence of points on either side of tthe 0 midpoint. 
+
+We can take the original data and combine them with influence scores. 
+
+For example: Cell1 PC1 score = (read count * influence)...for all cells.
+Cell1 PC2 score = (read count * influence)...for all cells.
+
+In this way, all data is compressed to one point. 
+
+
+```{r}
+v <- summary(wisc.pr)
+pr.var <- v$importance[2,]
+head(pr.var)
+plot(pr.var, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+```
+
+```{r}
+barplot(pr.var, ylab = "Precent of Variance Explained",
+     names.arg=paste0("PC",1:length(pr.var)), las=2, axes = FALSE)
+axis(2, at=pr.var, labels=round(pr.var,2)*100 )
+```
+
+>Q9. For the first principal component, what is the component of the loading vector (i.e. wisc.pr$rotation[,1]) for the feature concave.points_mean? This tells us how much this original feature contributes to the first PC.
+
+```{r}
+data.scaled <- scale(wisc.data)
+data.dist <- dist(data.scaled)
+
+```
+
+```{r}
+wisc.hclust <- hclust(data.dist)
+wisc.hclust
+```
+```{r}
+plot(wisc.hclust)
+abline(h=19, col="red", lty=2)
+```
+>Q10. Using the plot() and abline() functions, what is the height at which the clustering model has 4 clusters?
+
+There are four clusters at height=19. 
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k=4)
+table(wisc.hclust.clusters, diagnosis)
+```
+
+
+##4. Combining Methods
+
+Here we will use the results of PCA as the input of a clustering analysis. 
+
+We start with using 3 PCs
+
+```{r}
+wisc.pr.hclust <- hclust(dist(wisc.pr$x[,1:3]), method="ward.D2")
+plot(wisc.pr.hclust)
+```
+With this PCA data, there are now two clear branches. The pattern is quite different. 
+
+```{r}
+plot(wisc.pr.hclust)
+abline(h=80, col="red")
+```
+
+```{r}
+grps <- cutree(wisc.pr.hclust, h=80)
+table(grps)
+```
+We can created a comined table. 
+```{r}
+table(diagnosis, grps)
+```
+From this, we gather that most malignant examples are in cluster 1, while most benign examples are in cluster 2. Cluster 1 is enriched in malignant, while Cluster 2 is enriched in benign. 
+
+- True positives: 179
+- False positives: 33
+- True negatives: 333
+- False negatives: 24
+
+We can now use our existing PCA model by projecting new cell samples, to see where they land. It is a common strategy to first create a model and then project data upon them to do predictions. 
+
+```{r}
+#url <- "new_samples.csv"
+url <- "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+npc <- predict(wisc.pr, newdata=new)
+npc
+```
+```{r}
+plot(wisc.pr$x[,1:2], col=diagnosis)
+points(npc[,1], npc[,2], col="blue", pch=16, cex=3)
+text(npc[,1], npc[,2], c(1,2), col="white")
+```
+
+>Q16. Which of these new patients should we prioritize for follow up based on your results?
+
+Based on our PCA model, patient 2's cells more closely resemble malignant cells. This patient should be afforded higher priority and urgency regarding treatment. 
+
+
+In summary: PCA is an extremely useful method for reducing and visualizing data with many dimensions. We can also combine data to see where data overlaps. 
