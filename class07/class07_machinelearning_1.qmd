@@ -1,0 +1,162 @@
+---
+title: "Class 7: Machine Learning 1"
+author: "Renny (PID: A98061553)"
+format: pdf
+---
+
+Today we are going to explore some core machine learning methods. Namely clustering and dimensionality reduction. 
+
+# Kmeans clustering 
+
+The main function for k-means in "base" R is called `kmeans()`. Let's first make up some data to see how kmeans works and to get at the results. 
+
+```{r}
+#`rnorm()` function creates a set of data.
+# Using a histogram should show a normal distribution of numbers.
+# Setting a mean will designate where the data centers around. 
+hist(rnorm(50000, mean = 3))
+```
+Make a vector named `tmp` with 60 total points half centered at +3, and half centered at -3. 
+```{r}
+tmp <- c(rnorm(30, mean=3), rnorm(30, mean=-3))
+#concatenate with c()
+tmp
+```
+
+Reverse tmp using the reverse function `rev()`
+
+```{r}
+x <- cbind(x=tmp, y=rev(tmp))
+x
+```
+
+plot(x)
+```{r}
+plot(x)
+```
+Try k-means clustering by running `kmeans()` asking for two clusters: 
+
+```{r}
+k <- kmeans(x, centers=2, nstart=20)
+k
+```
+What is in this result object? Check with `attributes()`.
+```{r}
+attributes(k)
+```
+Can check individual attributes using function$attribute. 
+```{r}
+k$centers
+```
+What is my clustering result? I.e. what cluster does each point reside in? 
+Use $cluster to check.
+
+```{r}
+k$cluster
+```
+
+>Q. Plot your data `x` showing your clustering results and the center point for each cluster. 
+
+```{r}
+#Plot by k$cluster, which shows two distinct clusters. 
+plot(x, col = k$cluster)
+points(k$centers, pch=15, col="green")
+# `points()` function will add points to an existing plot.
+# Don't need to add `+`, not necessary in base R; automatically adds code together. 
+```
+>Q. Run kmeans and cluster into 3 groups. 
+
+```{r}
+# Can trick you into thinking the data is a certain way. There will always be an output but it may not be correct. 
+k3 <- kmeans(x, centers=3, nstart=20)
+plot(x, col=k3$cluster)
+```
+```{r}
+# Sum of squares value gets smaller with increasing number of clusters. 
+k$tot.withinss
+k3$tot.withinss
+```
+The main limitation of k-means clustering (though it is very often employed) is that it imposes a structure on  data (i.e. a clustering) that you ask for in the first place, even if that structure is not there. 
+
+# Hierarchical Clustering
+
+The main function in "base" R for this is called `hclust()`. It wants a distance matrix as input, not the data itself. hclust measures the dissimilarities as produced by distance. 
+
+We can calculate a distance matrix in multiple ways, but we will use the `dist()` function. Distance is by default measured as Euclidean distance).
+
+`hclust(dist(x))`
+
+```{r}
+#`dist()` takes the distance from all points, to build up a table.
+d <- dist(x)
+hc <- hclust(d)
+hc
+```
+```{r}
+plot(hc)
+# Note that there are no relationships between the labels. 
+# From this bottom-up approach, the thing that matters is the "crossbar"; it's this part that is important. The crossbar shows the distance where points are joined together. 
+abline(h=9, col="red")
+```
+To get the cluster membership vector (equivalent of k$cluster for k-means) we need to "cut" the tree at a given height that we choose. The function is called `cutree()`. 
+```{r}
+cutree(hc, h=9)
+```
+When choosing not to pick a certain height, and want to instead cut at values when there are certain clusters, then indicate that with `k`. 
+```{r}
+cutree(hc, k=4)
+```
+```{r}
+grps <- cutree(hc, k=2)
+grps
+```
+
+>Q. Plot our data ('x') colored by our hclust result.
+
+```{r}
+plot(x, col=grps)
+```
+
+# Principal Component Analysis 
+
+We will start with PCA of a tiny dataset of food data. 
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url, row.names=1)
+x
+```
+
+One useful plot in this case (because we only have 4 countries to look across) is a so-called "pairs plot". 
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+
+## Enter PCA
+
+The main function to do PCA in "base" R is called `prcomp()`. 
+
+It wants our variables as the columns (e.g. the foods in this case) and the countries as the rows. The data will need to be transposed. 
+
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+
+
+```{r}
+attributes(pca)
+```
+```{r}
+pca$x
+#Gives the values for the new values
+```
+
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab="PC1 (67.4%)", ylab="PC2(29%)",
+     col = c("orange", "red", "blue", "darkgreen"))
+abline(h=0, col="gray", lty=2)
+abline(v=0, col="gray", lty=2)
+```
+

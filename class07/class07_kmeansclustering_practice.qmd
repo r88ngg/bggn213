@@ -1,0 +1,25 @@
+---
+title: "class07_kmeansclustering_practice"
+format: html
+---
+
+Generate some example data for clustering.
+tmp <- c(rnorm(30,-3),rnorm(30,3))
+x < - cbind (x=tmp,y=rev(tmp))
+
+```{r}
+
+tmp <- c(rnorm(30,-3),rnorm(30,3))
+x <- cbind (x=tmp,y=rev(tmp))
+```
+
+
+Use the `kmeans()` function setting k to 2 and nstart = 20
+Inspect and print the results
+
+kmeans(x, centers = number of clusters, nstart = number times to run) 
+
+```{r}
+kmeans(x, centers=2, nstart=20)
+```
+
