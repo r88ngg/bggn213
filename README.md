@@ -7,8 +7,8 @@ My classwork for W24 at UC San Diego.
 - Class 8: [RNA-Seq Mini-Project](https://github.com/r88ngg/bggn213/blob/main/class08/class08_mini_project.pdf)
 - Class 9: [Halloween Candy Mini-Project](https://github.com/r88ngg/bggn213/blob/main/class10/class09-mini-project.pdf)
 - Class 10: [
-- Class 11:
-- Class 12:
-- Class 13:
-- Class 14:
-- Class 15: 
+- Class 11: [AlphaFold](https://github.com/r88ngg/bggn213/blob/main/class11/class11.pdf)
+- Class 12: [Population Analysis](https://github.com/r88ngg/bggn213/blob/main/class12/class12_q13_14.pdf)
+- Class 13: [DESeq](https://github.com/r88ngg/bggn213/blob/main/class13/class13.pdf)
+- Class 14: [Pathway Analysis](https://github.com/r88ngg/bggn213/blob/main/class14/class14.pdf)
+- Class 15: [Git and Github]
