@@ -1,5 +1,5 @@
 # bggn213
-My classwork for W24 at UC San Diego.
+My classwork for Winter Quarter 2024 for BGGN213 Bioinformatics at UC San Diego.
 
 - Class 5: [Data visualization with ggplot2](https://github.com/r88ngg/bggn213/blob/main/class05/class05.pdf)
 - Class 6: [R functions](https://github.com/r88ngg/bggn213/blob/main/class06/class06.pdf)
