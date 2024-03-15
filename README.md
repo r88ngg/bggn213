@@ -27,7 +27,7 @@ My classwork for Winter Quarter 2024 [BGGN213 Bioinformatics at UC San Diego](ht
   
 - Class 16: [Essential UNIX for Bioinformatics](https://github.com/r88ngg/bggn213/blob/main/class16.md)
 
-- Class 17: [Analyzing Sequencing Data in the Cloud](https://github.com/r88ngg/bggn213/blob/main/class17.md)
+- Class 17: [Analyzing Sequencing Data in the Cloud](https://github.com/r88ngg/bggn213/blob/main/Class%2017.md)
 
 - Class 18: [Investigating Pertussis Resurgence](https://github.com/r88ngg/bggn213/blob/main/class18.md)
   
