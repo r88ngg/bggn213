@@ -5,7 +5,7 @@ My classwork for Winter Quarter 2024 [BGGN213 Bioinformatics at UC San Diego](ht
 
 - Class 5: [Data Visualization with ggplot2](https://github.com/r88ngg/bggn213/blob/main/class05/class05.pdf)
   
-- Class 6: [R functions](https://github.com/r88ngg/bggn213/blob/main/class06/class06.pdf)
+- Class 6: [R functions](https://github.com/r88ngg/bggn213/blob/main/class06/class06.md)
   
 - Class 7: [Machine Learning for Bioinformatics](https://github.com/r88ngg/bggn213/blob/main/class07/class07_machinelearning_1.pdf)
   
