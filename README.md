@@ -11,4 +11,8 @@ My classwork for W24 at UC San Diego.
 - Class 12: [Population Analysis](https://github.com/r88ngg/bggn213/blob/main/class12/class12_q13_14.pdf)
 - Class 13: [DESeq](https://github.com/r88ngg/bggn213/blob/main/class13/class13.pdf)
 - Class 14: [Pathway Analysis](https://github.com/r88ngg/bggn213/blob/main/class14/class14.pdf)
-- Class 15: [Git and Github]
+- Class 15: [Git and Github](https://github.com/r88ngg/bggn213/blob/main/class15/HW8_unix_questions.pdf)
+- Class 16: []()
+- Class 17: []()
+- Class 18: []()
+- Class 19: []()
